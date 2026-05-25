@@ -628,10 +628,10 @@ function main() {
 
     buildWorld();
 
-    loadObjModel("models/bunny.obj", [0.75, 0.55, 0.85], function(model) {
-        model.setScale(12.0, 12.0, 12.0);
-        model.setTranslate(2.2, -0.15, 1.8);
-        model.setRotate(0, -25, 0);
+    loadObjModel("models/bunny.obj", [0.98, 0.72, 0.80], function(model) {
+        model.setScale(6.0, 6.0, 6.0);
+        model.setTranslate(-2.4, -0.12, -2.2);
+        model.setRotate(0, 35, 0);
         models.push(model);
         console.log("Loaded bunny.obj — vertices:", model.vertices.length / 3);
     });
@@ -651,10 +651,10 @@ function main() {
     gl.uniform1f(u_spotCosCutoff, Math.cos(30.0 * Math.PI / 180.0));
     gl.uniform1f(u_spotExponent, 15.0);
 
-    // Start inside arena, facing the yellow ball
+    // Start facing the eagle in the back-left corner
     camera = new Camera();
-    camera.eye = new Vector3([0, 1.8, -2.8]);
-    camera.center = new Vector3([0, 0.2, 0.5]);
+    camera.eye = new Vector3([-1.6, 1.4, -1.8]);
+    camera.center = new Vector3([-3.1, 0.35, -3.0]);
     camera.updateView();
 
     updateGameHud();
