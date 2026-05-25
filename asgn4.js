@@ -642,8 +642,11 @@ function main() {
     models.push(pointLightMarker);
 
     loadObjModel("models/bunny.obj", [0.98, 0.72, 0.80], function(model) {
-        model.setScale(6.0, 6.0, 6.0);
-        model.setTranslate(-3.3, -0.12, -3.3);
+        let bunnyScale = 6.0;
+        let groundTop = -0.9;
+        let bunnyMinY = 0.0333;
+        model.setScale(bunnyScale, bunnyScale, bunnyScale);
+        model.setTranslate(-3.3, groundTop - bunnyMinY * bunnyScale, -3.3);
         model.setRotate(0, 35, 0);
         models.push(model);
         console.log("Loaded bunny.obj — vertices:", model.vertices.length / 3);
