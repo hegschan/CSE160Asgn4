@@ -4,7 +4,7 @@ Pac themed arena demonstrating the basic of ambient, diffuse, and specular light
 
 User interface is implemented within the page that shows the different functions. Point light moves around the environment overtime along with the slider capable of navigating the light. 
 
-Spotlight is also implemented as there are buttons to visualize the normals with each color of the OBJ. 
+Spotlight is also implemented as there are buttons to visualize the normals with each color of the OBJ. OBJ consist a lilac bunny along with the implemented Eagle from prior project.
 
 ##Setup
 Navigate to the Pages section or https://hegschan.github.io/CSE160Asgn4/ 

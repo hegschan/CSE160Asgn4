@@ -161,11 +161,11 @@ const g_eagleJoint = {
 };
 
 const EAGLE_WORLD = {
-    x: -3.3,
-    y: -0.45,
-    z: -3.3,
+    x: -2.4,
+    y: -0.12,
+    z: -2.2,
     yaw: 35,
-    scale: 0.48
+    scale: 0.72
 };
 
 let u_ModelMatrix = null;
@@ -630,7 +630,7 @@ function main() {
 
     loadObjModel("models/bunny.obj", [0.98, 0.72, 0.80], function(model) {
         model.setScale(6.0, 6.0, 6.0);
-        model.setTranslate(-2.4, -0.12, -2.2);
+        model.setTranslate(-3.3, -0.12, -3.3);
         model.setRotate(0, 35, 0);
         models.push(model);
         console.log("Loaded bunny.obj — vertices:", model.vertices.length / 3);
@@ -653,8 +653,8 @@ function main() {
 
     // Start facing the eagle in the back-left corner
     camera = new Camera();
-    camera.eye = new Vector3([-1.6, 1.4, -1.8]);
-    camera.center = new Vector3([-3.1, 0.35, -3.0]);
+    camera.eye = new Vector3([-0.8, 1.4, -1.0]);
+    camera.center = new Vector3([-2.3, 0.35, -2.1]);
     camera.updateView();
 
     updateGameHud();
