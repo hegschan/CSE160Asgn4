@@ -138,6 +138,12 @@ let spotLightOn = true;
 let lastCameraPan = 0;
 let lastCameraTilt = 0;
 
+let eagleLeftWing = null;
+let eagleRightWing = null;
+let eagleFaceYaw = 40;
+let eagleWingAmplitude = 30;
+let eagleWingSpeed = 4.0;
+
 let u_ModelMatrix = null;
 let u_ViewMatrix = null;
 let u_ProjMatrix = null;
@@ -206,10 +212,70 @@ function updatePointLightPosition() {
     pointLightPos.elements[2] = lightRadius * Math.sin(t);
 }
 
+function updateEagleAnimation() {
+    if (!eagleLeftWing || !eagleRightWing) {
+        return;
+    }
+    let flap = eagleWingAmplitude * Math.sin(Date.now() * 0.001 * eagleWingSpeed);
+    eagleLeftWing.setRotate(flap, eagleFaceYaw, 0);
+    eagleRightWing.setRotate(-flap, eagleFaceYaw, 0);
+}
+
+function buildEagle() {
+    let brown = [0.42, 0.26, 0.10];
+    let brownDark = [0.34, 0.20, 0.08];
+    let brownLight = [0.52, 0.34, 0.15];
+    let beakColor = [0.85, 0.55, 0.12];
+
+    // Back-left corner of the arena
+    let bx = -3.3;
+    let by = -0.35;
+    let bz = -3.3;
+
+    let body = addModel(brown, "cube");
+    body.setTranslate(bx, by, bz);
+    body.setScale(0.55, 0.42, 0.72);
+    body.setRotate(0, eagleFaceYaw, 0);
+
+    let head = addModel(brownLight, "cube");
+    head.setTranslate(bx + 0.15, by + 0.38, bz + 0.28);
+    head.setScale(0.32, 0.32, 0.32);
+    head.setRotate(0, eagleFaceYaw, 0);
+
+    let beak = addModel(beakColor, "cube");
+    beak.setTranslate(bx + 0.28, by + 0.34, bz + 0.42);
+    beak.setScale(0.14, 0.1, 0.18);
+    beak.setRotate(0, eagleFaceYaw, 0);
+
+    let tail = addModel(brownDark, "cube");
+    tail.setTranslate(bx - 0.05, by + 0.12, bz - 0.42);
+    tail.setScale(0.22, 0.08, 0.35);
+    tail.setRotate(0, eagleFaceYaw, 0);
+
+    eagleLeftWing = addModel(brownDark, "cube");
+    eagleLeftWing.setTranslate(bx - 0.52, by + 0.18, bz);
+    eagleLeftWing.setScale(0.1, 0.38, 0.58);
+    eagleLeftWing.setRotate(0, eagleFaceYaw, 0);
+
+    eagleRightWing = addModel(brownDark, "cube");
+    eagleRightWing.setTranslate(bx + 0.52, by + 0.18, bz);
+    eagleRightWing.setScale(0.1, 0.38, 0.58);
+    eagleRightWing.setRotate(0, eagleFaceYaw, 0);
+
+    let footOffsets = [[-0.18, -0.22, 0.12], [0.18, -0.22, 0.12]];
+    for (let offset of footOffsets) {
+        let foot = addModel(brownDark, "cube");
+        foot.setTranslate(bx + offset[0], by + offset[1], bz + offset[2]);
+        foot.setScale(0.1, 0.08, 0.14);
+        foot.setRotate(0, eagleFaceYaw, 0);
+    }
+}
+
 function draw() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     updatePointLightPosition();
+    updateEagleAnimation();
 
     gl.uniform3fv(u_pointLightPos, pointLightPos.elements);
     gl.uniform3fv(u_spotLightPos, spotLightPos.elements);
@@ -278,6 +344,8 @@ function buildWorld() {
     let heroBall = addModel([1.0, 0.95, 0.4], "sphere");
     heroBall.setScale(1.1, 1.1, 1.1);
     heroBall.setTranslate(0.0, groundTop + 1.1, 0.5);
+
+    buildEagle();
 }
 
 function onZoomInput(value) {
