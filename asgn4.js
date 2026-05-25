@@ -651,10 +651,11 @@ function main() {
     gl.uniform1f(u_spotCosCutoff, Math.cos(30.0 * Math.PI / 180.0));
     gl.uniform1f(u_spotExponent, 15.0);
 
-    // Start facing the yellow ball
+    // Start with yellow ball, eagle, and bunny all in frame
     camera = new Camera();
-    camera.eye = new Vector3([0, 1.8, -2.8]);
-    camera.center = new Vector3([0, 0.2, 0.5]);
+    camera.eye = new Vector3([1.8, 3.2, 2.4]);
+    camera.center = new Vector3([-1.2, 0.35, -0.9]);
+    camera.zoom(1.35);
     camera.updateView();
 
     updateGameHud();
