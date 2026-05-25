@@ -498,9 +498,10 @@ function main() {
     gl.uniform1f(u_spotCosCutoff, Math.cos(30.0 * Math.PI / 180.0));
     gl.uniform1f(u_spotExponent, 15.0);
 
+    // Start inside arena, facing the balls (not the z=+4 back wall)
     camera = new Camera();
-    camera.eye = new Vector3([0, 2.5, 10]);
-    camera.center = new Vector3([0, 0.5, 1.5]);
+    camera.eye = new Vector3([0, 1.8, -2.8]);
+    camera.center = new Vector3([0, 0.2, 1.2]);
     camera.updateView();
 
     updateGameHud();
