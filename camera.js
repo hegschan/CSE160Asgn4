@@ -47,48 +47,42 @@ class Camera {
     }
 
     pan(angle) {
-        // Rotate center point around the up vector
         let rotMatrix = new Matrix4();
         rotMatrix.setRotate(angle, this.up.elements[0],
                                    this.up.elements[1],
                                    this.up.elements[2]);
 
-       // Compute forward vector
-       let forward = new Vector3(this.center.elements);
-       forward.sub(this.eye);
-
-       // Rotate forward vector around up vector
-       let forward_prime = rotMatrix.multiplyVector3(forward);
-       this.center.set(forward_prime);
-
-       this.updateView();
-    }
-
-    tilt(angle) {
-        //1. Calculate forward vector: center - eye
         let forward = new Vector3(this.center.elements);
         forward.sub(this.eye);
 
-        //2. Calculate right vetor: up x forward
-        let right = Vector3.cross(forward, this.up)
+        let forward_prime = rotMatrix.multiplyVector3(forward);
+        this.center.set(this.eye.elements);
+        this.center.add(forward_prime);
+
+        this.updateView();
+    }
+
+    tilt(angle) {
+        let forward = new Vector3(this.center.elements);
+        forward.sub(this.eye);
+
+        let right = Vector3.cross(forward, this.up);
         right.normalize();
 
-        // 3. Create a rotation matrix with angle and the right vector
-        //let rotMatrix = new Matrix4();
-        //rotMatrix.setRotate(...)
+        let rotMatrix = new Matrix4();
+        rotMatrix.setRotate(angle, right.elements[0],
+                                   right.elements[1],
+                                   right.elements[2]);
 
-        // 4. Rotate forward vector around the right vector
-        // with the matrix you create in 3.
-        // let forward_prime = rotMatrix.multiplyVector3(...)
+        let forward_prime = rotMatrix.multiplyVector3(forward);
+        this.center.set(this.eye.elements);
+        this.center.add(forward_prime);
 
-        // 5. Set the eye point to be the result of 3.
-        // this.center.set(forward_prime);
+        let up_prime = rotMatrix.multiplyVector3(this.up);
+        this.up.set(up_prime);
+        this.up.normalize();
 
-        // 6. Rotate the up vector around the right vector
-        // with the matrix you create in 3.
-        // this.up = rotMatrix.multiplyVector3(this.up)
-
-        // Normalize this.up?
+        this.updateView();
     }
 
     updateView() {

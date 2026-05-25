@@ -274,9 +274,15 @@
                 <div class="panel-title">PILOT</div>
 
                 <div class="control-group">
-                    <span class="control-label">LOOK ANGLE</span>
+                    <span class="control-label">LOOK LEFT / RIGHT</span>
                     <input id="cameraSlider" type="range" min="-180" max="180" value="0"
                            oninput="onCameraInput(this.value)">
+                </div>
+
+                <div class="control-group">
+                    <span class="control-label">LOOK UP / DOWN</span>
+                    <input id="cameraTiltSlider" type="range" min="-60" max="60" value="0"
+                           oninput="onCameraTiltInput(this.value)">
                 </div>
 
                 <div class="control-group">
@@ -287,7 +293,8 @@
 
                 <p class="legend">
                     <span class="kbd">W</span><span class="kbd">S</span> move<br>
-                    <span class="kbd">A</span><span class="kbd">D</span> turn
+                    <span class="kbd">A</span><span class="kbd">D</span> turn<br>
+                    <span class="kbd">Q</span><span class="kbd">E</span> look up/down
                 </p>
             </aside>
 
@@ -295,7 +302,7 @@
                 <canvas id="canvas" width="800" height="600"></canvas>
                 <div class="screen-hud">
                     <span class="hint">LVL 4 — PHONG ARENA</span>
-                    <span class="hint">OBJ RELIC LOADED</span>
+                    <span class="hint">YELLOW BALL ARENA</span>
                 </div>
             </main>
 

@@ -137,6 +137,7 @@ let showNormals = false;
 let pointLightOn = true;
 let spotLightOn = true;
 let lastCameraPan = 0;
+let lastCameraTilt = 0;
 
 let u_ModelMatrix = null;
 let u_ViewMatrix = null;
@@ -284,67 +285,12 @@ function buildWorld() {
         wall.setTranslate(wallPositions[i][0], wallPositions[i][1], wallPositions[i][2]);
     }
 
-    // Spheres sit on ground (top ~ -0.9) — center y = groundTop + radius
     let groundTop = -0.9;
-    let ballRadius = 0.85;
 
-    let sphereColors = [
-        [0.95, 0.25, 0.25],
-        [0.25, 0.9, 0.35],
-        [0.3, 0.5, 1.0]
-    ];
-    let spherePositions = [
-        [-2.5, groundTop + ballRadius, 1.5],
-        [0.0, groundTop + ballRadius, 2.0],
-        [2.5, groundTop + ballRadius, 1.5]
-    ];
-    for (let i = 0; i < 3; i++) {
-        let sphere = addModel(sphereColors[i], "sphere");
-        sphere.setScale(ballRadius, ballRadius, ballRadius);
-        sphere.setTranslate(
-            spherePositions[i][0],
-            spherePositions[i][1],
-            spherePositions[i][2]
-        );
-    }
-
-    // Main arcade ball — large, centered toward camera
+    // Yellow arcade ball only
     let heroBall = addModel([1.0, 0.95, 0.4], "sphere");
     heroBall.setScale(1.1, 1.1, 1.1);
     heroBall.setTranslate(0.0, groundTop + 1.1, 0.5);
-
-    let cube = addModel([0.95, 0.85, 0.2], "cube");
-    cube.setScale(0.7, 0.7, 0.7);
-    cube.setTranslate(0.0, groundTop + 0.55, -2.0);
-
-    buildAnimal();
-}
-
-function buildAnimal() {
-    let body = addModel([0.85, 0.45, 0.2], "cube");
-    body.setScale(1.2, 0.7, 0.9);
-    body.setTranslate(-3.0, 0.1, 2.0);
-
-    let head = addModel([0.95, 0.55, 0.25], "cube");
-    head.setScale(0.55, 0.55, 0.55);
-    head.setTranslate(-3.0, 0.75, 2.55);
-
-    let legOffsets = [
-        [-0.45, -0.55, 0.35],
-        [0.45, -0.55, 0.35],
-        [-0.45, -0.55, -0.35],
-        [0.45, -0.55, -0.35]
-    ];
-    for (let offset of legOffsets) {
-        let leg = addModel([0.6, 0.3, 0.15], "cube");
-        leg.setScale(0.18, 0.35, 0.18);
-        leg.setTranslate(-3.0 + offset[0], -0.35 + offset[1], 2.0 + offset[2]);
-    }
-
-    let tail = addModel([0.9, 0.35, 0.15], "cube");
-    tail.setScale(0.25, 0.25, 0.5);
-    tail.setTranslate(-3.0, 0.35, 1.35);
-    tail.setRotate(0, -25, 0);
 }
 
 function onZoomInput(value) {
@@ -355,6 +301,12 @@ function onCameraInput(value) {
     let angle = parseFloat(value);
     camera.pan(angle - lastCameraPan);
     lastCameraPan = angle;
+}
+
+function onCameraTiltInput(value) {
+    let angle = parseFloat(value);
+    camera.tilt(angle - lastCameraTilt);
+    lastCameraTilt = angle;
 }
 
 function onLightInput(value) {
@@ -424,6 +376,12 @@ window.addEventListener("keydown", function(event) {
         case "d":
             camera.pan(-3);
             break;
+        case "q":
+            camera.tilt(3);
+            break;
+        case "e":
+            camera.tilt(-3);
+            break;
     }
 });
 
@@ -467,13 +425,6 @@ function main() {
 
     buildWorld();
 
-    loadObjModel("models/cube.obj", [0.8, 0.5, 0.9], function(model) {
-        model.setScale(0.8, 0.8, 0.8);
-        model.setTranslate(2.5, 0.5, 1.5);
-        model.setRotate(0, 25, 0);
-        models.push(model);
-    });
-
     pointLightMarker = new Cube([1.0, 1.0, 0.3]);
     pointLightMarker.setScale(0.15, 0.15, 0.15);
     models.push(pointLightMarker);
@@ -498,10 +449,10 @@ function main() {
     gl.uniform1f(u_spotCosCutoff, Math.cos(30.0 * Math.PI / 180.0));
     gl.uniform1f(u_spotExponent, 15.0);
 
-    // Start inside arena, facing the balls (not the z=+4 back wall)
+    // Start inside arena, facing the yellow ball
     camera = new Camera();
     camera.eye = new Vector3([0, 1.8, -2.8]);
-    camera.center = new Vector3([0, 0.2, 1.2]);
+    camera.center = new Vector3([0, 0.2, 0.5]);
     camera.updateView();
 
     updateGameHud();
