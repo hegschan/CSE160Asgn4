@@ -118,7 +118,6 @@ let modelMatrix = new Matrix4();
 let normalMatrix = new Matrix4();
 
 let models = [];
-let pointLightMarker = null;
 
 let vertexBuffer = null;
 let normalBuffer = null;
@@ -221,12 +220,6 @@ function draw() {
     gl.uniform1i(u_pointLightOn, pointLightOn);
     gl.uniform1i(u_spotLightOn, spotLightOn);
 
-    pointLightMarker.setTranslate(
-        pointLightPos.elements[0],
-        pointLightPos.elements[1],
-        pointLightPos.elements[2]
-    );
-
     gl.uniform3fv(u_eyePosition, camera.eye.elements);
     gl.uniformMatrix4fv(u_ViewMatrix, false, camera.viewMatrix.elements);
     gl.uniformMatrix4fv(u_ProjMatrix, false, camera.projMatrix.elements);
@@ -261,25 +254,19 @@ function buildWorld() {
     ground.setTranslate(0.0, -1.0, 0.0);
 
     let wallColors = [
-        [0.6, 0.3, 0.3],
         [0.3, 0.5, 0.6],
-        [0.4, 0.6, 0.35],
-        [0.5, 0.4, 0.55]
+        [0.4, 0.6, 0.35]
     ];
     let wallPositions = [
-        [0.0, 1.0, -4.0],
-        [0.0, 1.0, 4.0],
         [-4.0, 1.0, 0.0],
         [4.0, 1.0, 0.0]
     ];
     let wallScales = [
-        [8.0, 3.0, 0.2],
-        [8.0, 3.0, 0.2],
         [0.2, 3.0, 8.0],
         [0.2, 3.0, 8.0]
     ];
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < wallColors.length; i++) {
         let wall = addModel(wallColors[i], "cube");
         wall.setScale(wallScales[i][0], wallScales[i][1], wallScales[i][2]);
         wall.setTranslate(wallPositions[i][0], wallPositions[i][1], wallPositions[i][2]);
@@ -377,10 +364,10 @@ window.addEventListener("keydown", function(event) {
             camera.pan(-3);
             break;
         case "q":
-            camera.tilt(3);
+            camera.tilt(5);
             break;
         case "e":
-            camera.tilt(-3);
+            camera.tilt(-5);
             break;
     }
 });
@@ -424,15 +411,6 @@ function main() {
     u_spotLightOn = gl.getUniformLocation(gl.program, "u_spotLightOn");
 
     buildWorld();
-
-    pointLightMarker = new Cube([1.0, 1.0, 0.3]);
-    pointLightMarker.setScale(0.15, 0.15, 0.15);
-    models.push(pointLightMarker);
-
-    let spotMarker = new Cube([0.3, 0.8, 1.0]);
-    spotMarker.setScale(0.12, 0.12, 0.12);
-    spotMarker.setTranslate(spotLightPos.elements[0], spotLightPos.elements[1], spotLightPos.elements[2]);
-    models.push(spotMarker);
 
     vertexBuffer = initBuffer("a_Position", 3);
     normalBuffer = initBuffer("a_Normal", 3);

@@ -46,6 +46,16 @@ class Camera {
         console.log(right);
     }
 
+    rotateVec3(mat, vec) {
+        let e = mat.elements;
+        let p = vec.elements;
+        return new Vector3([
+            p[0] * e[0] + p[1] * e[4] + p[2] * e[8],
+            p[0] * e[1] + p[1] * e[5] + p[2] * e[9],
+            p[0] * e[2] + p[1] * e[6] + p[2] * e[10]
+        ]);
+    }
+
     pan(angle) {
         let rotMatrix = new Matrix4();
         rotMatrix.setRotate(angle, this.up.elements[0],
@@ -55,8 +65,8 @@ class Camera {
         let forward = new Vector3(this.center.elements);
         forward.sub(this.eye);
 
-        let forward_prime = rotMatrix.multiplyVector3(forward);
-        this.center.set(this.eye.elements);
+        let forward_prime = this.rotateVec3(rotMatrix, forward);
+        this.center.set(this.eye);
         this.center.add(forward_prime);
 
         this.updateView();
@@ -67,6 +77,9 @@ class Camera {
         forward.sub(this.eye);
 
         let right = Vector3.cross(forward, this.up);
+        if (right.magnitude() < 0.0001) {
+            return;
+        }
         right.normalize();
 
         let rotMatrix = new Matrix4();
@@ -74,11 +87,11 @@ class Camera {
                                    right.elements[1],
                                    right.elements[2]);
 
-        let forward_prime = rotMatrix.multiplyVector3(forward);
-        this.center.set(this.eye.elements);
+        let forward_prime = this.rotateVec3(rotMatrix, forward);
+        this.center.set(this.eye);
         this.center.add(forward_prime);
 
-        let up_prime = rotMatrix.multiplyVector3(this.up);
+        let up_prime = this.rotateVec3(rotMatrix, this.up);
         this.up.set(up_prime);
         this.up.normalize();
 
