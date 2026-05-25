@@ -1,0 +1,13 @@
+-Add sphere - DONE
+-Add normals - DONE
+-Add light - DONE
+-Add shading model
+  -Per Vertex - DONE
+  -Phong - DONE
+-Add a moving point light - DONE
+-Spotlight with individual light toggles - DONE
+-OBJ model loading - DONE
+-Normal visualization toggle - DONE
+-Lighting on/off toggle - DONE
+-Light color slider - DONE
+-Camera keyboard + slider - DONE

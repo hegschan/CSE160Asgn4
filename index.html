@@ -1,0 +1,48 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>ASG 4 - Lighting Ball Arcade</title>
+
+        <script src="lib/cuon-matrix-cse160.js"></script>
+        <script src="lib/cuon-utils.js"></script>
+        <script src="lib/webgl-debug.js"></script>
+        <script src="lib/webgl-utils.js"></script>
+
+        <script src="camera.js"></script>
+        <script src="models/model.js"></script>
+        <script src="models/cube.js"></script>
+        <script src="models/sphere.js"></script>
+        <script src="models/objmodel.js"></script>
+
+        <script src="asgn4.js"></script>
+    </head>
+
+    <body onload="main()">
+        <canvas id="canvas" width="640" height="480"></canvas>
+
+        <br><br>
+        <button id="lightingBtn" onclick="toggleLighting()">Lighting: ON</button>
+        <button id="normalsBtn" onclick="toggleNormals()">Normals: OFF</button>
+        <button id="pointLightBtn" onclick="togglePointLight()">Point Light: ON</button>
+        <button id="spotLightBtn" onclick="toggleSpotLight()">Spot Light: ON</button>
+        <br><br>
+
+        <label>Camera Pan:</label>
+        <input id="cameraSlider" type="range" min="-180" max="180" value="0" oninput="onCameraInput(this.value)">
+        <br>
+        <label>Point Light Angle:</label>
+        <input id="lightSlider" type="range" min="0" max="360" value="0" oninput="onLightInput(this.value)">
+        <br>
+        <label>Zoom:</label>
+        <input id="zoomSlider" type="range" min="1" max="20" value="1" oninput="onZoomInput(this.value)">
+        <br>
+        <label>Light Red:</label>
+        <input id="lightRed" type="range" min="0" max="100" value="100" oninput="onLightColorInput()">
+        <label>Green:</label>
+        <input id="lightGreen" type="range" min="0" max="100" value="100" oninput="onLightColorInput()">
+        <label>Blue:</label>
+        <input id="lightBlue" type="range" min="0" max="100" value="100" oninput="onLightColorInput()">
+        <br><br>
+        <p>WASD to move camera. Point light orbits automatically; use slider to offset.</p>
+    </body>
+</html>
