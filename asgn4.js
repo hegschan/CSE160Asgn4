@@ -118,6 +118,7 @@ let modelMatrix = new Matrix4();
 let normalMatrix = new Matrix4();
 
 let models = [];
+let pointLightMarker = null;
 
 let vertexBuffer = null;
 let normalBuffer = null;
@@ -432,6 +433,14 @@ function draw() {
     gl.uniform1i(u_pointLightOn, pointLightOn);
     gl.uniform1i(u_spotLightOn, spotLightOn);
 
+    if (pointLightMarker) {
+        pointLightMarker.setTranslate(
+            pointLightPos.elements[0],
+            pointLightPos.elements[1],
+            pointLightPos.elements[2]
+        );
+    }
+
     gl.uniform3fv(u_eyePosition, camera.eye.elements);
     gl.uniformMatrix4fv(u_ViewMatrix, false, camera.viewMatrix.elements);
     gl.uniformMatrix4fv(u_ProjMatrix, false, camera.projMatrix.elements);
@@ -627,6 +636,10 @@ function main() {
     u_spotLightOn = gl.getUniformLocation(gl.program, "u_spotLightOn");
 
     buildWorld();
+
+    pointLightMarker = new Cube([1.0, 1.0, 0.35]);
+    pointLightMarker.setScale(0.15, 0.15, 0.15);
+    models.push(pointLightMarker);
 
     loadObjModel("models/bunny.obj", [0.98, 0.72, 0.80], function(model) {
         model.setScale(6.0, 6.0, 6.0);
