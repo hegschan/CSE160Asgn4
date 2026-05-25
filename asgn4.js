@@ -298,6 +298,35 @@ function buildWorld() {
     let cube = addModel([0.95, 0.85, 0.2], "cube");
     cube.setScale(0.7, 0.7, 0.7);
     cube.setTranslate(0.0, 0.5, -1.5);
+
+    buildAnimal();
+}
+
+function buildAnimal() {
+    let body = addModel([0.85, 0.45, 0.2], "cube");
+    body.setScale(1.2, 0.7, 0.9);
+    body.setTranslate(-3.0, 0.1, 2.0);
+
+    let head = addModel([0.95, 0.55, 0.25], "cube");
+    head.setScale(0.55, 0.55, 0.55);
+    head.setTranslate(-3.0, 0.75, 2.55);
+
+    let legOffsets = [
+        [-0.45, -0.55, 0.35],
+        [0.45, -0.55, 0.35],
+        [-0.45, -0.55, -0.35],
+        [0.45, -0.55, -0.35]
+    ];
+    for (let offset of legOffsets) {
+        let leg = addModel([0.6, 0.3, 0.15], "cube");
+        leg.setScale(0.18, 0.35, 0.18);
+        leg.setTranslate(-3.0 + offset[0], -0.35 + offset[1], 2.0 + offset[2]);
+    }
+
+    let tail = addModel([0.9, 0.35, 0.15], "cube");
+    tail.setScale(0.25, 0.25, 0.5);
+    tail.setTranslate(-3.0, 0.35, 1.35);
+    tail.setRotate(0, -25, 0);
 }
 
 function onZoomInput(value) {
@@ -320,28 +349,46 @@ function onLightColorInput() {
     lightColor[2] = document.getElementById("lightBlue").value / 100.0;
 }
 
+function setPowerButton(btnId, statusId, isOn) {
+    let btn = document.getElementById(btnId);
+    let status = document.getElementById(statusId);
+    if (!btn || !status) {
+        return;
+    }
+    status.textContent = isOn ? "ON" : "OFF";
+    status.className = "status " + (isOn ? "on" : "off");
+    if (isOn) {
+        btn.classList.add("active-power");
+    } else {
+        btn.classList.remove("active-power");
+    }
+}
+
+function updateGameHud() {
+    setPowerButton("lightingBtn", "lightingStatus", useLighting);
+    setPowerButton("normalsBtn", "normalsStatus", showNormals);
+    setPowerButton("pointLightBtn", "pointLightStatus", pointLightOn);
+    setPowerButton("spotLightBtn", "spotLightStatus", spotLightOn);
+}
+
 function toggleLighting() {
     useLighting = !useLighting;
-    document.getElementById("lightingBtn").textContent =
-        "Lighting: " + (useLighting ? "ON" : "OFF");
+    updateGameHud();
 }
 
 function toggleNormals() {
     showNormals = !showNormals;
-    document.getElementById("normalsBtn").textContent =
-        "Normals: " + (showNormals ? "ON" : "OFF");
+    updateGameHud();
 }
 
 function togglePointLight() {
     pointLightOn = !pointLightOn;
-    document.getElementById("pointLightBtn").textContent =
-        "Point Light: " + (pointLightOn ? "ON" : "OFF");
+    updateGameHud();
 }
 
 function toggleSpotLight() {
     spotLightOn = !spotLightOn;
-    document.getElementById("spotLightBtn").textContent =
-        "Spot Light: " + (spotLightOn ? "ON" : "OFF");
+    updateGameHud();
 }
 
 window.addEventListener("keydown", function(event) {
@@ -437,5 +484,6 @@ function main() {
     camera.center = new Vector3([0, 0, 0]);
     camera.updateView();
 
+    updateGameHud();
     draw();
 }

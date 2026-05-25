@@ -1,48 +1,355 @@
-<html>
-    <head>
-        <meta charset="utf-8">
-        <title>ASG 4 - Lighting Ball Arcade</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Lighting Ball Arcade</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap');
 
-        <script src="lib/cuon-matrix-cse160.js"></script>
-        <script src="lib/cuon-utils.js"></script>
-        <script src="lib/webgl-debug.js"></script>
-        <script src="lib/webgl-utils.js"></script>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        <script src="camera.js"></script>
-        <script src="models/model.js"></script>
-        <script src="models/cube.js"></script>
-        <script src="models/sphere.js"></script>
-        <script src="models/objmodel.js"></script>
+        body {
+            min-height: 100vh;
+            background: #0a0612;
+            background-image:
+                radial-gradient(ellipse at 50% 0%, #2a1040 0%, transparent 55%),
+                linear-gradient(180deg, #12081f 0%, #050308 100%);
+            color: #e8f4ff;
+            font-family: 'Share Tech Mono', monospace;
+            overflow-x: hidden;
+        }
 
-        <script src="asgn4.js"></script>
-    </head>
+        #game-shell {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 16px;
+        }
 
-    <body onload="main()">
-        <canvas id="canvas" width="640" height="480"></canvas>
+        .arcade-header {
+            text-align: center;
+            padding: 12px 0 20px;
+        }
 
-        <br><br>
-        <button id="lightingBtn" onclick="toggleLighting()">Lighting: ON</button>
-        <button id="normalsBtn" onclick="toggleNormals()">Normals: OFF</button>
-        <button id="pointLightBtn" onclick="togglePointLight()">Point Light: ON</button>
-        <button id="spotLightBtn" onclick="toggleSpotLight()">Spot Light: ON</button>
-        <br><br>
+        .arcade-header h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(14px, 2.8vw, 22px);
+            letter-spacing: 2px;
+            color: #ff6ec7;
+            text-shadow:
+                0 0 8px #ff6ec7,
+                0 0 20px #7b2ff7,
+                3px 3px 0 #2d1b69;
+        }
 
-        <label>Camera Pan:</label>
-        <input id="cameraSlider" type="range" min="-180" max="180" value="0" oninput="onCameraInput(this.value)">
-        <br>
-        <label>Point Light Angle:</label>
-        <input id="lightSlider" type="range" min="0" max="360" value="0" oninput="onLightInput(this.value)">
-        <br>
-        <label>Zoom:</label>
-        <input id="zoomSlider" type="range" min="1" max="20" value="1" oninput="onZoomInput(this.value)">
-        <br>
-        <label>Light Red:</label>
-        <input id="lightRed" type="range" min="0" max="100" value="100" oninput="onLightColorInput()">
-        <label>Green:</label>
-        <input id="lightGreen" type="range" min="0" max="100" value="100" oninput="onLightColorInput()">
-        <label>Blue:</label>
-        <input id="lightBlue" type="range" min="0" max="100" value="100" oninput="onLightColorInput()">
-        <br><br>
-        <p>WASD to move camera. Point light orbits automatically; use slider to offset.</p>
-    </body>
+        .arcade-header p {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #8ab4d4;
+            letter-spacing: 1px;
+        }
+
+        .game-layout {
+            display: grid;
+            grid-template-columns: 200px 1fr 200px;
+            gap: 14px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .game-layout {
+                grid-template-columns: 1fr;
+            }
+            .side-panel { order: 2; }
+            .arena { order: 1; }
+        }
+
+        .side-panel {
+            background: linear-gradient(160deg, #1a1030 0%, #0f0820 100%);
+            border: 2px solid #4a2d7a;
+            border-radius: 8px;
+            padding: 14px 12px;
+            box-shadow:
+                inset 0 0 30px rgba(123, 47, 247, 0.08),
+                0 4px 0 #2d1b69;
+        }
+
+        .panel-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 8px;
+            color: #5ce1ff;
+            text-shadow: 0 0 6px #5ce1ff;
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #4a2d7a;
+        }
+
+        .arena {
+            position: relative;
+            background: #000;
+            border: 4px solid #4a2d7a;
+            border-radius: 4px;
+            box-shadow:
+                0 0 0 2px #1a1030,
+                0 0 40px rgba(92, 225, 255, 0.15),
+                inset 0 0 60px rgba(0, 0, 0, 0.9);
+        }
+
+        #canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 4 / 3;
+            image-rendering: pixelated;
+            cursor: crosshair;
+        }
+
+        .screen-hud {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+            font-size: 11px;
+            color: #5ce1ff;
+            text-shadow: 0 0 4px #000;
+        }
+
+        .screen-hud .hint {
+            background: rgba(0, 0, 0, 0.55);
+            padding: 4px 8px;
+            border: 1px solid #4a2d7a;
+            border-radius: 3px;
+        }
+
+        .control-group {
+            margin-bottom: 16px;
+        }
+
+        .control-label {
+            display: block;
+            font-size: 10px;
+            color: #9d7ec8;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .game-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 10px;
+            margin-bottom: 8px;
+            border: 2px solid #4a2d7a;
+            border-radius: 4px;
+            background: linear-gradient(180deg, #2a1848 0%, #1a1030 100%);
+            color: #e8f4ff;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            cursor: pointer;
+            transition: transform 0.08s, box-shadow 0.08s, border-color 0.08s;
+        }
+
+        .game-btn:hover {
+            border-color: #5ce1ff;
+            box-shadow: 0 0 12px rgba(92, 225, 255, 0.25);
+        }
+
+        .game-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        .game-btn.active-power {
+            border-color: #39ff14;
+            box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
+        }
+
+        .status {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 7px;
+            padding: 3px 5px;
+            border-radius: 2px;
+        }
+
+        .status.on {
+            background: #1a4d1a;
+            color: #39ff14;
+            box-shadow: 0 0 6px rgba(57, 255, 20, 0.5);
+        }
+
+        .status.off {
+            background: #4d1a1a;
+            color: #ff4444;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #2a1848;
+            border-radius: 3px;
+            outline: none;
+            margin: 4px 0;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 14px;
+            height: 18px;
+            background: linear-gradient(180deg, #ff6ec7, #7b2ff7);
+            border: 2px solid #fff;
+            border-radius: 2px;
+            cursor: grab;
+            box-shadow: 0 0 8px #ff6ec7;
+        }
+
+        .beam-panel {
+            margin-top: 14px;
+            background: linear-gradient(160deg, #1a1030 0%, #0f0820 100%);
+            border: 2px solid #4a2d7a;
+            border-radius: 8px;
+            padding: 14px 18px;
+            box-shadow: 0 4px 0 #2d1b69;
+        }
+
+        .beam-panel .panel-title { margin-bottom: 12px; }
+
+        .beam-sliders {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .beam-sliders { grid-template-columns: 1fr; }
+        }
+
+        .beam-track.red .control-label { color: #ff6b6b; }
+        .beam-track.green .control-label { color: #39ff14; }
+        .beam-track.blue .control-label { color: #5ce1ff; }
+
+        .kbd {
+            display: inline-block;
+            padding: 2px 6px;
+            background: #2a1848;
+            border: 1px solid #5ce1ff;
+            border-radius: 3px;
+            font-size: 10px;
+            color: #5ce1ff;
+            margin: 0 1px;
+        }
+
+        .legend {
+            font-size: 10px;
+            color: #6a8aaa;
+            line-height: 1.7;
+            margin-top: 8px;
+        }
+    </style>
+
+    <script src="lib/cuon-matrix-cse160.js"></script>
+    <script src="lib/cuon-utils.js"></script>
+    <script src="lib/webgl-debug.js"></script>
+    <script src="lib/webgl-utils.js"></script>
+    <script src="camera.js"></script>
+    <script src="models/model.js"></script>
+    <script src="models/cube.js"></script>
+    <script src="models/sphere.js"></script>
+    <script src="models/objmodel.js"></script>
+    <script src="asgn4.js"></script>
+</head>
+<body onload="main()">
+    <div id="game-shell">
+        <header class="arcade-header">
+            <h1>LIGHTING BALL ARCADE</h1>
+            <p>Explore the arena — chase the orbiting light — master Phong shading</p>
+        </header>
+
+        <div class="game-layout">
+            <aside class="side-panel">
+                <div class="panel-title">PILOT</div>
+
+                <div class="control-group">
+                    <span class="control-label">LOOK ANGLE</span>
+                    <input id="cameraSlider" type="range" min="-180" max="180" value="0"
+                           oninput="onCameraInput(this.value)">
+                </div>
+
+                <div class="control-group">
+                    <span class="control-label">ZOOM</span>
+                    <input id="zoomSlider" type="range" min="1" max="20" value="1"
+                           oninput="onZoomInput(this.value)">
+                </div>
+
+                <p class="legend">
+                    <span class="kbd">W</span><span class="kbd">S</span> move<br>
+                    <span class="kbd">A</span><span class="kbd">D</span> turn
+                </p>
+            </aside>
+
+            <main class="arena">
+                <canvas id="canvas" width="800" height="600"></canvas>
+                <div class="screen-hud">
+                    <span class="hint">LVL 4 — PHONG ARENA</span>
+                    <span class="hint">OBJ RELIC LOADED</span>
+                </div>
+            </main>
+
+            <aside class="side-panel">
+                <div class="panel-title">POWER</div>
+
+                <button id="lightingBtn" class="game-btn active-power" onclick="toggleLighting()">
+                    <span>PHONG SHADER</span>
+                    <span id="lightingStatus" class="status on">ON</span>
+                </button>
+
+                <button id="normalsBtn" class="game-btn" onclick="toggleNormals()">
+                    <span>NORMAL VIEW</span>
+                    <span id="normalsStatus" class="status off">OFF</span>
+                </button>
+
+                <button id="pointLightBtn" class="game-btn active-power" onclick="togglePointLight()">
+                    <span>ORBIT LIGHT</span>
+                    <span id="pointLightStatus" class="status on">ON</span>
+                </button>
+
+                <button id="spotLightBtn" class="game-btn active-power" onclick="toggleSpotLight()">
+                    <span>SPOT BEAM</span>
+                    <span id="spotLightStatus" class="status on">ON</span>
+                </button>
+
+                <div class="control-group" style="margin-top:12px">
+                    <span class="control-label">LIGHT ORBIT</span>
+                    <input id="lightSlider" type="range" min="0" max="360" value="0"
+                           oninput="onLightInput(this.value)">
+                </div>
+            </aside>
+        </div>
+
+        <section class="beam-panel">
+            <div class="panel-title">BEAM COLOR</div>
+            <div class="beam-sliders">
+                <div class="beam-track red">
+                    <span class="control-label">RED</span>
+                    <input id="lightRed" type="range" min="0" max="100" value="100"
+                           oninput="onLightColorInput()">
+                </div>
+                <div class="beam-track green">
+                    <span class="control-label">GREEN</span>
+                    <input id="lightGreen" type="range" min="0" max="100" value="100"
+                           oninput="onLightColorInput()">
+                </div>
+                <div class="beam-track blue">
+                    <span class="control-label">BLUE</span>
+                    <input id="lightBlue" type="range" min="0" max="100" value="100"
+                           oninput="onLightColorInput()">
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
 </html>
