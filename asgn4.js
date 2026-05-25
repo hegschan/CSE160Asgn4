@@ -651,10 +651,10 @@ function main() {
     gl.uniform1f(u_spotCosCutoff, Math.cos(30.0 * Math.PI / 180.0));
     gl.uniform1f(u_spotExponent, 15.0);
 
-    // Start facing the eagle in the back-left corner
+    // Start facing the yellow ball
     camera = new Camera();
-    camera.eye = new Vector3([-0.8, 1.4, -1.0]);
-    camera.center = new Vector3([-2.3, 0.35, -2.1]);
+    camera.eye = new Vector3([0, 1.8, -2.8]);
+    camera.center = new Vector3([0, 0.2, 0.5]);
     camera.updateView();
 
     updateGameHud();
