@@ -284,20 +284,38 @@ function buildWorld() {
         wall.setTranslate(wallPositions[i][0], wallPositions[i][1], wallPositions[i][2]);
     }
 
+    // Spheres sit on ground (top ~ -0.9) — center y = groundTop + radius
+    let groundTop = -0.9;
+    let ballRadius = 0.85;
+
     let sphereColors = [
-        [0.9, 0.2, 0.2],
-        [0.2, 0.8, 0.3],
-        [0.2, 0.4, 0.95]
+        [0.95, 0.25, 0.25],
+        [0.25, 0.9, 0.35],
+        [0.3, 0.5, 1.0]
+    ];
+    let spherePositions = [
+        [-2.5, groundTop + ballRadius, 1.5],
+        [0.0, groundTop + ballRadius, 2.0],
+        [2.5, groundTop + ballRadius, 1.5]
     ];
     for (let i = 0; i < 3; i++) {
         let sphere = addModel(sphereColors[i], "sphere");
-        sphere.setScale(0.6, 0.6, 0.6);
-        sphere.setTranslate(-2.0 + i * 2.0, 0.0, 0.0);
+        sphere.setScale(ballRadius, ballRadius, ballRadius);
+        sphere.setTranslate(
+            spherePositions[i][0],
+            spherePositions[i][1],
+            spherePositions[i][2]
+        );
     }
+
+    // Main arcade ball — large, centered toward camera
+    let heroBall = addModel([1.0, 0.95, 0.4], "sphere");
+    heroBall.setScale(1.1, 1.1, 1.1);
+    heroBall.setTranslate(0.0, groundTop + 1.1, 0.5);
 
     let cube = addModel([0.95, 0.85, 0.2], "cube");
     cube.setScale(0.7, 0.7, 0.7);
-    cube.setTranslate(0.0, 0.5, -1.5);
+    cube.setTranslate(0.0, groundTop + 0.55, -2.0);
 
     buildAnimal();
 }
@@ -418,6 +436,7 @@ function main() {
     }
 
     gl.enable(gl.DEPTH_TEST);
+    gl.disable(gl.CULL_FACE);
     gl.clearColor(0.05, 0.05, 0.1, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -480,8 +499,8 @@ function main() {
     gl.uniform1f(u_spotExponent, 15.0);
 
     camera = new Camera();
-    camera.eye = new Vector3([0, 2, 8]);
-    camera.center = new Vector3([0, 0, 0]);
+    camera.eye = new Vector3([0, 2.5, 10]);
+    camera.center = new Vector3([0, 0.5, 1.5]);
     camera.updateView();
 
     updateGameHud();
