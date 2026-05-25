@@ -138,11 +138,35 @@ let spotLightOn = true;
 let lastCameraPan = 0;
 let lastCameraTilt = 0;
 
-let eagleLeftWing = null;
-let eagleRightWing = null;
-let eagleFaceYaw = 40;
-let eagleWingAmplitude = 30;
-let eagleWingSpeed = 4.0;
+let eagleCubeGeo = null;
+let eaglePyramidGeo = null;
+let eagleModelStack = [];
+let g_eagleStartTime = 0;
+
+const g_eagleJoint = {
+    neck: 0,
+    head: 0,
+    beak: 0,
+    tail: 0,
+    leftShoulder: 10,
+    leftElbow: -10,
+    leftWrist: 10,
+    rightShoulder: -10,
+    rightElbow: 10,
+    rightWrist: -10,
+    leftHip: 0,
+    leftKnee: 0,
+    rightHip: 0,
+    rightKnee: 0
+};
+
+const EAGLE_WORLD = {
+    x: -3.3,
+    y: -0.45,
+    z: -3.3,
+    yaw: 35,
+    scale: 0.48
+};
 
 let u_ModelMatrix = null;
 let u_ViewMatrix = null;
@@ -212,63 +236,185 @@ function updatePointLightPosition() {
     pointLightPos.elements[2] = lightRadius * Math.sin(t);
 }
 
-function updateEagleAnimation() {
-    if (!eagleLeftWing || !eagleRightWing) {
-        return;
-    }
-    let flap = eagleWingAmplitude * Math.sin(Date.now() * 0.001 * eagleWingSpeed);
-    eagleLeftWing.setRotate(flap, eagleFaceYaw, 0);
-    eagleRightWing.setRotate(-flap, eagleFaceYaw, 0);
+function initEagle() {
+    eagleCubeGeo = new UnitCube([1.0, 1.0, 1.0]);
+    eaglePyramidGeo = new Pyramid([1.0, 1.0, 1.0]);
+    g_eagleStartTime = Date.now();
 }
 
-function buildEagle() {
-    let brown = [0.42, 0.26, 0.10];
-    let brownDark = [0.34, 0.20, 0.08];
-    let brownLight = [0.52, 0.34, 0.15];
-    let beakColor = [0.85, 0.55, 0.12];
+function eaglePushMatrix(m) {
+    eagleModelStack.push(new Matrix4(m));
+}
 
-    // Back-left corner of the arena
-    let bx = -3.3;
-    let by = -0.35;
-    let bz = -3.3;
+function eaglePopMatrix() {
+    return eagleModelStack.pop();
+}
 
-    let body = addModel(brown, "cube");
-    body.setTranslate(bx, by, bz);
-    body.setScale(0.55, 0.42, 0.72);
-    body.setRotate(0, eagleFaceYaw, 0);
+function drawEagleGeometry(geo, mat, color) {
+    gl.uniformMatrix4fv(u_ModelMatrix, false, mat.elements);
+    normalMatrix.setInverseOf(mat);
+    normalMatrix.transpose();
+    gl.uniformMatrix4fv(u_NormalMatrix, false, normalMatrix.elements);
+    gl.uniform3f(u_Color, color[0], color[1], color[2]);
 
-    let head = addModel(brownLight, "cube");
-    head.setTranslate(bx + 0.15, by + 0.38, bz + 0.28);
-    head.setScale(0.32, 0.32, 0.32);
-    head.setRotate(0, eagleFaceYaw, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, geo.vertices, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, geo.normals, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, geo.indices, gl.STATIC_DRAW);
+    gl.drawElements(gl.TRIANGLES, geo.indices.length, gl.UNSIGNED_SHORT, 0);
+}
 
-    let beak = addModel(beakColor, "cube");
-    beak.setTranslate(bx + 0.28, by + 0.34, bz + 0.42);
-    beak.setScale(0.14, 0.1, 0.18);
-    beak.setRotate(0, eagleFaceYaw, 0);
+function drawEagleCube(mat, color) {
+    drawEagleGeometry(eagleCubeGeo, mat, color);
+}
 
-    let tail = addModel(brownDark, "cube");
-    tail.setTranslate(bx - 0.05, by + 0.12, bz - 0.42);
-    tail.setScale(0.22, 0.08, 0.35);
-    tail.setRotate(0, eagleFaceYaw, 0);
+function drawEaglePyramid(mat, color) {
+    drawEagleGeometry(eaglePyramidGeo, mat, color);
+}
 
-    eagleLeftWing = addModel(brownDark, "cube");
-    eagleLeftWing.setTranslate(bx - 0.52, by + 0.18, bz);
-    eagleLeftWing.setScale(0.1, 0.38, 0.58);
-    eagleLeftWing.setRotate(0, eagleFaceYaw, 0);
+function updateEagleAnimation() {
+    let t = (Date.now() - g_eagleStartTime) / 1000.0;
+    let flap = 35 * Math.sin(t * 5.0);
+    let elbowWave = 18 * Math.sin(t * 5.0 + 0.8);
+    let wristWave = 12 * Math.sin(t * 5.0 + 1.4);
 
-    eagleRightWing = addModel(brownDark, "cube");
-    eagleRightWing.setTranslate(bx + 0.52, by + 0.18, bz);
-    eagleRightWing.setScale(0.1, 0.38, 0.58);
-    eagleRightWing.setRotate(0, eagleFaceYaw, 0);
+    g_eagleJoint.leftShoulder = 10 + flap;
+    g_eagleJoint.rightShoulder = -10 - flap;
+    g_eagleJoint.leftElbow = -10 + elbowWave;
+    g_eagleJoint.rightElbow = 10 - elbowWave;
+    g_eagleJoint.leftWrist = 8 + wristWave;
+    g_eagleJoint.rightWrist = -8 - wristWave;
 
-    let footOffsets = [[-0.18, -0.22, 0.12], [0.18, -0.22, 0.12]];
-    for (let offset of footOffsets) {
-        let foot = addModel(brownDark, "cube");
-        foot.setTranslate(bx + offset[0], by + offset[1], bz + offset[2]);
-        foot.setScale(0.1, 0.08, 0.14);
-        foot.setRotate(0, eagleFaceYaw, 0);
+    g_eagleJoint.neck = 10 * Math.sin(t * 1.6);
+    g_eagleJoint.head = 6 * Math.sin(t * 2.2);
+    g_eagleJoint.tail = 14 * Math.sin(t * 2.0 + 2.2);
+    g_eagleJoint.leftHip = 12 * Math.sin(t * 3.5);
+    g_eagleJoint.rightHip = -12 * Math.sin(t * 3.5);
+    g_eagleJoint.leftKnee = 8 * Math.sin(t * 3.5 + 0.5);
+    g_eagleJoint.rightKnee = -8 * Math.sin(t * 3.5 + 0.5);
+    g_eagleJoint.beak = 6 * Math.max(0, Math.sin(t * 4.0));
+}
+
+function drawEagleWing(root, x, y, z, left) {
+    let shoulder = new Matrix4(root);
+    shoulder.translate(x, y, z);
+    shoulder.rotate(left ? g_eagleJoint.leftShoulder : g_eagleJoint.rightShoulder, 0, 0, 1);
+    eaglePushMatrix(shoulder);
+
+    let upper = new Matrix4(shoulder);
+    upper.scale(1.1, 0.2, 0.35);
+    drawEagleCube(upper, [0.29, 0.18, 0.10]);
+
+    let elbow = eaglePopMatrix();
+    elbow.translate(1.05, 0.05, 0.0);
+    elbow.rotate(left ? g_eagleJoint.leftElbow : g_eagleJoint.rightElbow, 0, 0, 1);
+    eaglePushMatrix(elbow);
+
+    let fore = new Matrix4(elbow);
+    fore.scale(1.0, 0.16, 0.32);
+    drawEagleCube(fore, [0.22, 0.14, 0.08]);
+
+    let wrist = eaglePopMatrix();
+    wrist.translate(0.95, 0.02, 0.0);
+    wrist.rotate(left ? g_eagleJoint.leftWrist : g_eagleJoint.rightWrist, 0, 0, 1);
+
+    let tip = new Matrix4(wrist);
+    tip.scale(0.85, 0.12, 0.3);
+    drawEagleCube(tip, [0.17, 0.11, 0.07]);
+}
+
+function drawEagleLeg(root, x, y, z, left) {
+    let hip = new Matrix4(root);
+    hip.translate(x, y, z);
+    hip.rotate(left ? g_eagleJoint.leftHip : g_eagleJoint.rightHip, 0, 0, 1);
+    eaglePushMatrix(hip);
+
+    let thigh = new Matrix4(hip);
+    thigh.scale(0.16, 0.55, 0.16);
+    drawEagleCube(thigh, [0.90, 0.73, 0.31]);
+
+    let knee = eaglePopMatrix();
+    knee.translate(0.0, -0.53, 0.0);
+    knee.rotate(left ? g_eagleJoint.leftKnee : g_eagleJoint.rightKnee, 0, 0, 1);
+    eaglePushMatrix(knee);
+
+    let shin = new Matrix4(knee);
+    shin.scale(0.13, 0.5, 0.13);
+    drawEagleCube(shin, [0.86, 0.67, 0.20]);
+
+    let foot = eaglePopMatrix();
+    foot.translate(0.0, -0.5, 0.0);
+    foot.scale(0.35, 0.08, 0.22);
+    drawEagleCube(foot, [0.97, 0.79, 0.28]);
+}
+
+function renderEagle() {
+    if (!eagleCubeGeo) {
+        return;
     }
+
+    eagleModelStack = [];
+
+    let world = new Matrix4();
+    world.translate(EAGLE_WORLD.x, EAGLE_WORLD.y, EAGLE_WORLD.z);
+    world.rotate(EAGLE_WORLD.yaw, 0, 1, 0);
+    world.scale(EAGLE_WORLD.scale, EAGLE_WORLD.scale, EAGLE_WORLD.scale);
+
+    let eagleRoot = new Matrix4(world);
+    eagleRoot.translate(-0.72, -0.66, -0.18);
+    eagleRoot.scale(0.42, 0.42, 0.42);
+
+    let body = new Matrix4(eagleRoot);
+    body.translate(-1.2, 0.6, -0.4);
+    body.scale(2.4, 1.2, 1.4);
+    drawEagleCube(body, [0.38, 0.25, 0.13]);
+
+    let chest = new Matrix4(eagleRoot);
+    chest.translate(-0.8, 0.35, -0.25);
+    chest.scale(1.6, 1.0, 1.1);
+    drawEagleCube(chest, [0.55, 0.35, 0.20]);
+
+    let pelvis = new Matrix4(eagleRoot);
+    pelvis.translate(-0.7, 0.0, -0.3);
+    pelvis.scale(1.4, 0.6, 1.2);
+    drawEagleCube(pelvis, [0.30, 0.20, 0.10]);
+
+    let neckBase = new Matrix4(eagleRoot);
+    neckBase.translate(-0.25, 1.35, 0.08);
+    neckBase.rotate(g_eagleJoint.neck, 0, 0, 1);
+    eaglePushMatrix(neckBase);
+    neckBase.scale(0.45, 0.7, 0.45);
+    drawEagleCube(neckBase, [0.56, 0.42, 0.27]);
+
+    let headRoot = eaglePopMatrix();
+    headRoot.translate(0.07, 0.7, 0.1);
+    headRoot.rotate(g_eagleJoint.head, 0, 0, 1);
+    eaglePushMatrix(headRoot);
+
+    let head = new Matrix4(headRoot);
+    head.scale(0.6, 0.5, 0.55);
+    drawEagleCube(head, [0.90, 0.90, 0.85]);
+
+    let beakRoot = eaglePopMatrix();
+    beakRoot.translate(0.55, 0.22, 0.12);
+    beakRoot.rotate(g_eagleJoint.beak, 0, 0, 1);
+    let beak = new Matrix4(beakRoot);
+    beak.scale(0.5, 0.35, 0.35);
+    drawEaglePyramid(beak, [0.95, 0.75, 0.15]);
+
+    let tailRoot = new Matrix4(eagleRoot);
+    tailRoot.translate(-1.25, 0.95, 0.1);
+    tailRoot.rotate(g_eagleJoint.tail, 0, 0, 1);
+    let tail = new Matrix4(tailRoot);
+    tail.scale(0.8, 0.25, 0.6);
+    drawEagleCube(tail, [0.26, 0.16, 0.08]);
+
+    drawEagleWing(eagleRoot, -0.1, 1.0, -0.35, true);
+    drawEagleWing(eagleRoot, -0.1, 1.0, 1.05, false);
+    drawEagleLeg(eagleRoot, 0.2, 0.03, -0.1, true);
+    drawEagleLeg(eagleRoot, 0.2, 0.03, 0.7, false);
 }
 
 function draw() {
@@ -293,6 +439,8 @@ function draw() {
     for (let m of models) {
         drawModel(m);
     }
+
+    renderEagle();
 
     requestAnimationFrame(draw);
 }
@@ -345,7 +493,7 @@ function buildWorld() {
     heroBall.setScale(1.1, 1.1, 1.1);
     heroBall.setTranslate(0.0, groundTop + 1.1, 0.5);
 
-    buildEagle();
+    initEagle();
 }
 
 function onZoomInput(value) {
