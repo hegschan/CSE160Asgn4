@@ -53,6 +53,32 @@ class ObjModel extends Model {
         for (let face of faces) {
             const triangles = this.triangulate(face);
             for (let tri of triangles) {
+                const p0 = [
+                    positions[tri[0].v * 3],
+                    positions[tri[0].v * 3 + 1],
+                    positions[tri[0].v * 3 + 2]
+                ];
+                const p1 = [
+                    positions[tri[1].v * 3],
+                    positions[tri[1].v * 3 + 1],
+                    positions[tri[1].v * 3 + 2]
+                ];
+                const p2 = [
+                    positions[tri[2].v * 3],
+                    positions[tri[2].v * 3 + 1],
+                    positions[tri[2].v * 3 + 2]
+                ];
+
+                const ux = p1[0] - p0[0], uy = p1[1] - p0[1], uz = p1[2] - p0[2];
+                const vx = p2[0] - p0[0], vy = p2[1] - p0[1], vz = p2[2] - p0[2];
+                let nx = uy * vz - uz * vy;
+                let ny = uz * vx - ux * vz;
+                let nz = ux * vy - uy * vx;
+                const len = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1.0;
+                nx /= len;
+                ny /= len;
+                nz /= len;
+
                 for (let corner of tri) {
                     const vIdx = corner.v;
                     vertexList.push(
@@ -68,11 +94,7 @@ class ObjModel extends Model {
                             normals[corner.vn * 3 + 2]
                         );
                     } else {
-                        const nx = positions[vIdx * 3];
-                        const ny = positions[vIdx * 3 + 1];
-                        const nz = positions[vIdx * 3 + 2];
-                        const len = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1.0;
-                        normalList.push(nx / len, ny / len, nz / len);
+                        normalList.push(nx, ny, nz);
                     }
 
                     indexList.push(vertexList.length / 3 - 1);

@@ -628,6 +628,14 @@ function main() {
 
     buildWorld();
 
+    loadObjModel("models/bunny.obj", [0.75, 0.55, 0.85], function(model) {
+        model.setScale(12.0, 12.0, 12.0);
+        model.setTranslate(2.2, -0.15, 1.8);
+        model.setRotate(0, -25, 0);
+        models.push(model);
+        console.log("Loaded bunny.obj — vertices:", model.vertices.length / 3);
+    });
+
     vertexBuffer = initBuffer("a_Position", 3);
     normalBuffer = initBuffer("a_Normal", 3);
 
